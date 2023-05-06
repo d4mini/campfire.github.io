@@ -1,0 +1,18 @@
+:root {
+	--backg: #222222;
+	--main: #b5b5a4;
+	--crt1: rgba(255, 72, 0, 0.616);
+	--crt2: rgba(0, 174, 255, 0.685);
+	--jump-amount: 3px;
+  }
+
+html {
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 16px;
+	height: 100%;
+}
+body {
+	background-color: var(--backg);
+	color: var(--main);
+	margin: 0px;
+}

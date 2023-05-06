@@ -22,6 +22,11 @@ body {
     left:50%;
     transform:translate(-50%,-50%);
     border: solid 2px var(--main);
-    width: 600px;
-    max-width: 100%;
+    width: 620px;
+}
+@media only screen and (max-width: 620px) {
+    /* For mobile phones: */
+    #centered {
+      width: 100%;
+    }
 }

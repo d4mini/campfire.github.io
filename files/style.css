@@ -19,28 +19,28 @@ body {
 
 ::-moz-selection { /* Code for Firefox */
     color: var(--backg); background: var(--main);
-  }
+}
   
-  ::selection {
+::selection {
     color: var(--backg); background: var(--main);
-  }
+}
   
-  /* Scroll Bar */
+/* Scroll Bar */
   
-  ::-webkit-scrollbar {
+::-webkit-scrollbar {
     width: 0.5rem;
-  }
-  ::-webkit-scrollbar-track {
+}
+::-webkit-scrollbar-track {
     background: var(--backg); 
-  }
-  ::-webkit-scrollbar-thumb {
+}
+::-webkit-scrollbar-thumb {
     background: var(--backg);
     border: 1px solid var(--main);
-    transition: background 0.3s;
-  }
-  ::-webkit-scrollbar-thumb:hover {
+    /* transition: background 0.3s; */
+}
+::-webkit-scrollbar-thumb:hover {
     background: var(--main); 
-  }
+}
 
 @keyframes fadeInCrt {
 	0%   {opacity: 0;}

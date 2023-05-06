@@ -6,11 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="./files/style.css">
 	<link rel="icon" type="image/x-icon" href="./files/fire.png">
+    <script src="./files/campfireQuest.js"></script>
+	<script src="./files/data.js"></script>
 </head>
 <body>
+    <div id="versionNo">Version Text</div>
     <div id="centered">
-        <h1>Hello World</h1>
-        <p>This is a test.</p>  
+        <div id="pictureArea">
+            <a href="javascript:startQuest()" id="questLink"><img id="picture" src="./files/template.png" alt="forest clearing"></a>
+        </div>
+        <div id="logArea">
+			<!--<a id="clearButton">clear</a> -->
+			<div id="logs">
+			</div>
+			<div id="gameChoices">
+			<a>Fight</a><a>Item</a><a>Run</a>
+			</div>
+		</div>
     </div>
 </body>
+<script>
+    var consoleDiv = document.getElementById('logs');
+    function logMessage(message) {
+	    for (var i = 0; i < consoleDiv.children.length; i++){
+		    consoleDiv.children[i].classList.add('old');
+	    }
+	    var newParagraph = document.createElement('p');
+        newParagraph.innerHTML = message;
+        consoleDiv.appendChild(newParagraph);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+    var versionCounter = document.getElementById('versionNo')
+	versionCounter.textContent = "V" + versionNumber
+</script>
 </html>

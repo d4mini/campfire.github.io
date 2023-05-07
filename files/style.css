@@ -105,7 +105,7 @@ img {
 #gameChoices {
 	margin-top: 0.5rem;
 	text-align: left;
-	opacity: 0;
+	opacity: 1;
 }
 
 #gameChoices > a {

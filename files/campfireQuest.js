@@ -3,7 +3,8 @@ let startGame = false;
 let choiceArea = document.getElementById('gameChoices');
 var versionNumber = "0.12 Talktative Parrot"
 var menuState = {
-	"start": {choices: [{name: "get up"}]},
+	"start": {choices: [{name: "get up"}, {name: "recall name"}]},
+	"form": {objectsToBeNamed: []},
 	"idle": {choices: [{name: "move"},{name: "inventory"}, {name:"look", target: "around"}]},
 	"combat": {choices: [{name:"fight"}, {name:"items"}, {name:"run"}]},
 	"backpack": {choices: [{name:"back"}, {name:"worn"}]},
@@ -13,12 +14,13 @@ var menuState = {
 	"inspect": {choices: []},
 	"inspectMenu": {choices: []},
 	"conversation": {choices: []},
+	"wishMenu": {choices: [{name: "wish for", target: {name:"power"}},{name: "wish for", target: {name:"money"}},{name: "wish for", target: {name:"love"}}]},
 	"empty": {choices: []} //left intenionally empty
 };
 var menuStateIndex = "start";
 var previousMenuStateIndex = "start";
 
-var character = { pcName: "You",inventory: [], equipment: [], location: "clearing" };
+var character = { pcName: "You", nickname: "",named: false,inventory: [], equipment: [], location: "clearing" };
 
 
 
@@ -44,9 +46,26 @@ function updateChoices(newState){
 		previousMenuStateIndex = menuStateIndex;
 	}
 	menuStateIndex = newState;
-	//logMessage("updating choices for " + menuStateIndex)
+	if(newState === "form"){
+		//push a form instead!
+		let newForm = document.createElement('form');
+		newForm.autocomplete="off";
+		newForm.addEventListener("submit", function(event){
+			event.preventDefault();
+			executeChoice("rename",[document.getElementById("myInput").value, menuState["form"].objectsToBeNamed[0]])
+		})
+		let input = document.createElement("input");
+		input.type = "text";
+		input.id = "myInput"
+		newForm.appendChild(input);
+		var submitBtn = document.createElement("button");
+		submitBtn.type = "submit"
+		submitBtn.textContent = "finish"
+		newForm.appendChild(submitBtn);
+		choiceArea.appendChild(newForm);
+		return;
+	}
 	updateIdle();
-	
 	for (var i = 0; i < menuState[menuStateIndex].choices.length; i++) {
 		let newParagraph = document.createElement('a');
 		let choice = menuState[menuStateIndex].choices[i];
@@ -116,7 +135,7 @@ function updateChoices(newState){
 					choiceText += pluralCheck(choice.target, quantity, "note");
 				}
 			}
-			else if (!(["drop","inspect", "take all"].includes(choice.name))){
+			else if (!(["drop","inspect", "take all", "make a wish"].includes(choice.name))){
 				choiceText += pluralCheck(choice.target, quantity, "note");
 			}
 			else {
@@ -146,6 +165,24 @@ function executeChoice(choiceName, target, quantity) {
 			newMessage = "You sit up and get to your feet. ";
 			newState = "idle";
       	break;
+		case "recall name":
+			//push a form instead of just a button
+			newMessage = "You try to recall your name.";
+			menuState["form"].objectsToBeNamed.length = 0;
+			menuState["form"].objectsToBeNamed.push(character);
+			newState = "form";
+		break;
+		case "rename":
+			//accept name
+			if (target[0].length > 1){
+				target[1].nickname = target[0]
+				newMessage = "Your new name is " + character.nickname + "."
+				newState = "start"
+			}
+			else {
+				newMessage = "Please enter a longer name."
+			}
+		break;
 		case "back":
 			var backToState
       		switch(menuStateIndex){
@@ -328,7 +365,7 @@ function executeChoice(choiceName, target, quantity) {
 			}
 			newMessage += focus.long_description + ".";
 			
-			if ("open" in focus || "fishing" in focus || "talk" in focus){
+			if ("open" in focus || "fishing" in focus || "talk" in focus || "uses" in focus){
 				//logMessage("You can do something with this!")
 				
 				updateInspectMenu(target);
@@ -476,6 +513,15 @@ function executeChoice(choiceName, target, quantity) {
 			}
 			updateInspectMenu(target);
 		break;
+		case "make a wish":
+			//open the wish menu!
+			newMessage = "What do you wish for?"
+			newState = "wishMenu"
+		break;
+		case "wish for":
+			//make a wish!
+			newMessage = "You throw a coin into the well and wish for " + target.name + ". You look around, but nothing seems to have changed."
+		break;
 		case "attack":
 			//attack this thing!!!
 			newMessage = "Why would you attack a " + target + "?"
@@ -604,6 +650,10 @@ function roll(command){
 	const total = rolls.reduce((acc, roll) => acc + roll, 0) + modifier;
 	
 	return total;
+}
+
+function renamer(obj, newName){
+	//do the naming!
 }
 
 /* Inventory Functions */
@@ -939,39 +989,45 @@ function updateInspectMenu(object){
 		var showThings = true
 		//logMessage("Hey this is a fixture!");
 		//Does it open?
-		if(inspectableFixture.hasOwnProperty("open")){
+		if(object.hasOwnProperty("open")){
 			//is it open?
-			if(inspectableFixture.open === false){
-				menuState["inspectMenu"].choices.push({name: "open", target: inspectableFixture})
+			if(object.open === false){
+				menuState["inspectMenu"].choices.push({name: "open", target: object})
 				showThings = false;
 			}
 			else{
-				menuState["inspectMenu"].choices.push({name: "close", target: inspectableFixture})
+				menuState["inspectMenu"].choices.push({name: "close", target: object})
 			}	
 		}
 		//Can you fish at it?
-		if(inspectableFixture.hasOwnProperty("fishing")){
+		if(object.hasOwnProperty("fishing")){
 			menuState["inspectMenu"].choices.push({name: "fish at", target: object})
 		}
+		//Are there other more niche uses?
+		if(object.hasOwnProperty("uses")){
+			object.uses.forEach(function(fixtureUse){
+				menuState["inspectMenu"].choices.push({name: fixtureUse, target: object})
+			})
+		}
 		//Can you exit through it?
-		if(inspectableFixture.hasOwnProperty("exits")){
+		if(object.hasOwnProperty("exits")){
 			//are the exits visible?
 			if(showThings === true){
 				updateExits(character.location)
-				inspectableFixture.exits.forEach(function(exitOption){
+				object.exits.forEach(function(exitOption){
 					menuState["inspectMenu"].choices.push({name: "moveTo", target: exitOption.name})
 				})
 			}
 		}
 		//Are there objects to pick up?
-		if(inspectableFixture.hasOwnProperty("contents")){
+		if(object.hasOwnProperty("contents")){
 			if(showThings === true){
-				inspectableFixture.contents.forEach(function(contentItem){
+				object.contents.forEach(function(contentItem){
 					if (!(contentItem.hasOwnProperty("qty"))){
 						contentItem.qty = 1
 					}
 					logMessage("adding "+contentItem.qty + " " + contentItem.name + " to the inspectMenu")
-					menuState["inspectMenu"].choices.push({name: "pickup", target: [contentItem, inspectableFixture], qty: contentItem.qty})
+					menuState["inspectMenu"].choices.push({name: "pickup", target: [contentItem, object], qty: contentItem.qty})
 				})
 			}
 		}

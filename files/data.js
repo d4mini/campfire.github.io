@@ -45,12 +45,11 @@ var areas = {
         long_description: "a small glade with an old stone well in the centre.",
         contents:[],
         npcs: [{name:"froggo"}],
-        fixtures: [{name: "well", seen: true, long_description: "an old stone well, half covered in moss"}],
+        fixtures: [{name: "well", seen: true, long_description: "an old stone well, half covered in moss", uses:["make a wish"]}],
         exits: [{name: "clearing", exitName: "magic door", transit: "step through"}]
 
     }
 }
-
 //Items
 
 var itemDictionary = {
@@ -147,6 +146,7 @@ var npcDictionary = {
         pronouns: ["he", "him"],
         short_description: "chonky frog",
         long_description: "a large frog with big yellow eyes. He croaks loudly",
+        doing: "sitting by the well",
         talk: [ 
             {label: "g0", scene: "The frog stares at you.", replies: [
                 {m: "\"Hello?\"", next: "intro1"},
@@ -176,6 +176,7 @@ var npcDictionary = {
         pronouns: ["she", "her"],
         short_description: "merchant",
         long_description: "a strong, stout woman with short blonde hair. She carries an enormous pack",
+        doing: "selling her wares",
         priceMod: 1.15,
         focusItem: [],
         justBought: false,

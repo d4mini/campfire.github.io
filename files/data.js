@@ -35,7 +35,7 @@ var areas = {
 	"old road": {
 		short_description: "on an old road",
 		long_description: "an overgrown path that winds through the dark forest.",
-        npcs: [],
+        npcs: [{name:"skeleton knight", hostility: 50}],
 		contents: [{name: "greataxe", seen:false}],
 		fixtures: [],
 		exits: [{name: "clearing", exitName: "clearing", direction: "south", transit: "follow the path to"}]
@@ -61,7 +61,8 @@ var itemDictionary = {
     },
     "your bare hands":{
         name: "your bare hands",
-        fishingGear: 50
+        fishingGear: 50,
+        tags: ["unarmed"]
     },
     "rusty sword": {
         name: "rusty sword",
@@ -69,7 +70,8 @@ var itemDictionary = {
         long_description: "The rusted blade isn't the best weapon, but it will do.",
         value: 4,
         use: "equip",
-        slot: "weapon"
+        slot: "weapon",
+        tags: ["sword", "rusty"]
     },
     "health potion": {
         name: "health potion",
@@ -143,7 +145,7 @@ var npcDictionary = {
     "froggo": {
         name: "froggo",
         known: false,
-        pronouns: ["he", "him"],
+        pronouns: ["he", "him", "his"],
         short_description: "chonky frog",
         long_description: "a large frog with big yellow eyes. He croaks loudly",
         doing: "sitting by the well",
@@ -173,7 +175,7 @@ var npcDictionary = {
     "Ari": {
         name: "Ari",
         known: false,
-        pronouns: ["she", "her"],
+        pronouns: ["she", "her", "her"],
         short_description: "merchant",
         long_description: "a strong, stout woman with short blonde hair. She carries an enormous pack",
         doing: "selling her wares",
@@ -249,7 +251,73 @@ var npcDictionary = {
             {label: "shophub1", replies:[]},
             {label: "bye0", npc: "\"See you later!\"", next: "end"}
         ]
+    },
+    //monsters
+    "skeleton knight": {
+        name: "skeleton knight",
+        known: false,
+        pronouns: ["he", "him", "his"],
+        short_description: "skeleton knight",
+        long_description: "a weathered in skeleton in ragged armor",
+        doing: "shambling around",
+        contents: [{name: "rusty sword", qty: 1},{name: "gold", qty: "3d6"}],
+        talk: [
+            {label: "g0", scene: "The skeleton tilts his empty eyes towards you but says nothing.", next: "end"},
+            {label: "g1", scene: "The only sound the skeleton makes the occasional creak of bones.", next: "end"},
+        ],
+        hostility: 50,
+        weaknesses: ["crushing", "light"],
+        resistances: ["acid"],
+        immunities: ["poison", "healing"],
+        stats: [
+            {"hp": 100},
+            {"maxhp": 100},
+            {"armor": 5},
+            {"speed": 5},
+        ],
+        tags:["skeleton", "sword"]
     }
 }
-//Monsters
+
+//weapon actions/spells
+
+actionDict = {
+    "punch":{
+        name: "punch",
+        type: "melee",
+        tags: ["unarmed"],
+        damage: "crushing",
+        tryPhrases: ["make a fist and swing at","punch at", "jab at"],
+        otherTryPhrases: ["makes a fist and swings","punches", "jabs"],
+        hitPhrases: ["punches", "connects", "wollops"]
+    },
+    "basic stab":{
+        name:"lunge",
+        type: "melee",
+        tags: ["sword", "spear"],
+        damage: "piercing",
+        tryPhrases: ["quickly lunge at", "stab at", "thrust at"],
+        otherTryPhrases: ["quickly lunges at", "stabs at", "thrusts at"],
+        hitPhrases: ["stabs", "skewers", "pierces"]
+    },
+    "slashing swing":{
+        name:"swing",
+        type: "melee",
+        tags: ["sword"],
+        damage: "slashing",
+        tryPhrases: ["swing at", "sweep your weapon toward", "charge"],
+        otherTryPhrases: ["swings at", "charges"],
+        hitPhrases: ["slashes", "slices", "cuts"]
+    },
+    "shoot":{
+        name:"quick shot",
+        type: "ranged",
+        tags: ["bow"],
+        damage: "piercing",
+        tryPhrases: ["aim at", "target", "shoot at", "loose an arrow at"],
+        otherTryPhrases: ["aims at", "targets", "shoots at", "looses an arrow at"],
+        hitPhrases: ["hits", "shoots", "marks"]
+    }
+
+}
 

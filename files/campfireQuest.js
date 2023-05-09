@@ -7,6 +7,8 @@ var menuState = {
 	"form": {objectsToBeNamed: []},
 	"idle": {choices: [{name: "move"},{name: "inventory"}, {name:"look", target: "around"}]},
 	"combat": {choices: [{name:"fight"}, {name:"items"}, {name:"run"}]},
+	"fightMenu": {choices: []},
+	"weaponMenu": {choices: []},
 	"backpack": {choices: [{name:"back"}, {name:"worn"}]},
 	"itemMenu": {choices: [{name:"back"}]},
 	"container": {choices: [{name: "back"}]},
@@ -19,8 +21,8 @@ var menuState = {
 };
 var menuStateIndex = "start";
 var previousMenuStateIndex = "start";
-
-var character = { pcName: "You", nickname: "",named: false,inventory: [], equipment: [], location: "clearing" };
+var inCombat = false;
+var character = { pcName: "You", nickname: "",named: false,inventory: [], equipment: [], location: "clearing" , lastmove: "none"};
 
 
 
@@ -70,7 +72,7 @@ function updateChoices(newState){
 		let newParagraph = document.createElement('a');
 		let choice = menuState[menuStateIndex].choices[i];
 		let choiceText = choice.name;
-		if (["pickup","openItemMenu", "inspectAt", "playerTalk", "considerBuy"].includes(choice.name)){
+		if (["pickup","openItemMenu", "inspectAt", "playerTalk", "considerBuy",].includes(choice.name)){
 			choiceText = "";
 		}
 		else{
@@ -96,6 +98,12 @@ function updateChoices(newState){
 			if (choice.name === "moveTo"){
 				choiceText += ""
 			}
+			else if (choice.name === "fight with"){
+				choiceText = choice.target[0].name
+			}
+			else if (choice.name === "wpnAction"){
+				choiceText = choice.target[2].name
+			}
 			else if(["playerTalk"].includes(choice.name)){
 				choiceText = choice.target[1].m
 			}
@@ -117,10 +125,10 @@ function updateChoices(newState){
 			else if(["buy all", "sell all"].includes(choice.name)){
 				choiceText = choice.name + " (" + choice.target[3] + ")";
 			}
-			else if(["inspectAt", "talk to"].includes(choice.name)){
+			else if(["inspectAt", "talk to", "attack"].includes(choice.name)){
 				if(choice.target.name in npcDictionary){
 					var targetnpc = npcDictionary[choice.target.name]
-					//if we know him, use his name!
+					//if we know them, use their name!
 					if(targetnpc.known === true){
 						choiceText += targetnpc.name
 					}
@@ -197,6 +205,12 @@ function executeChoice(choiceName, target, quantity) {
 				break;
 				case "inspectMent":
 					backToState = "inspect"
+				break;
+				case "fightMenu":
+					backToState = "combat"
+				break;
+				case "weaponMenu":
+					backToState = "fightMenu"
 				break;
 				default:
 					backToState = "idle";
@@ -352,22 +366,18 @@ function executeChoice(choiceName, target, quantity) {
 			if (target.name in npcDictionary){
 				focus = npcDictionary[target.name]
 				newMessage = capFirst(focus.pronouns[0])
-				if (["he", "she", "it"].includes(focus.pronouns[0])){
-					newMessage += "'s "
-				}
-				else{
-					newMessage += " are "
-				}
+				if (["he", "she", "it"].includes(focus.pronouns[0])){newMessage += "'s "}else{newMessage += " are "}
+				newMessage += focus.long_description + ". ";
+				newMessage += capFirst(focus.pronouns[0])
+				if (["he", "she", "it"].includes(focus.pronouns[0])){newMessage += " is "}else{newMessage += " are "}
+				newMessage += focus.doing + ". ";
 			}
 			else {
 				focus = fixtureArray.find(fixture => fixture.name === target.name);
-				newMessage = "It's ";	
+				newMessage = "It's " + focus.long_description + ".";	
 			}
-			newMessage += focus.long_description + ".";
-			
-			if ("open" in focus || "fishing" in focus || "talk" in focus || "uses" in focus){
+			if ("open" in focus || "fishing" in focus || "talk" in focus || "uses" in focus || "hostility" in focus){
 				//logMessage("You can do something with this!")
-				
 				updateInspectMenu(target);
 				newState = "inspectMenu"
 			}
@@ -524,7 +534,8 @@ function executeChoice(choiceName, target, quantity) {
 		break;
 		case "attack":
 			//attack this thing!!!
-			newMessage = "Why would you attack a " + target + "?"
+			menuState["combat"].choices.find(option => option.name === "fight").target = target;
+			newState = "combat"
 		break;
 		case "drop":
 			newMessage = "You drop the " + pluralCheck(target, quantity, "short") + " in the " + character.location + ".";
@@ -600,13 +611,25 @@ function executeChoice(choiceName, target, quantity) {
 			newState = "container"
 		break;
     	case "fight":
-      		// do something for "run" choice
+      		// do something for "fight" choice
+			updateFightMenu(target)
+			newState = "fightMenu"
       	break;
+		case "fight with":
+			updateWeaponMenu(target[0], target[1])
+			newState = "weaponMenu"
+		break;
+		case "wpnAction":
+			//perform the wpn action I guess
+			//do you know the target personally?
+			resolveAttack(character, target[1], target[2], target[0])
+		break;
 		case "items":
       		// do something for "run" choice
       	break;	
     	case "run":
       		// do something for "run" choice
+			newState = "moveMenu"
       	break;
     	default:
       	// handle unrecognized choice
@@ -650,10 +673,6 @@ function roll(command){
 	const total = rolls.reduce((acc, roll) => acc + roll, 0) + modifier;
 	
 	return total;
-}
-
-function renamer(obj, newName){
-	//do the naming!
 }
 
 /* Inventory Functions */
@@ -982,6 +1001,9 @@ function updateInspectMenu(object){
 	//Is this a person?
 	if (object.name in npcDictionary){
 		menuState["inspectMenu"].choices.push({name: "talk to", target: object})
+		if (object.hasOwnProperty("hostility")){
+			menuState["inspectMenu"].choices.push({name: "attack", target: object})
+		}
 	}
 	//Is this a fixture?
 	if (areas[character.location].fixtures.some(fixture => fixture.name === object.name)) {
@@ -1178,6 +1200,8 @@ function updateExits(area) {
 	areas[area].exits.forEach(function(exit) {
 		menuState["moveMenu"].choices.push({name: "moveTo", target: exit.name});
 	})
+	//add a hide option
+	menuState["moveMenu"].choices.push({name: "hide"});
 	//add the back option
 	menuState["moveMenu"].choices.push({name: "back"});
 	//updateChoices("moveMenu");
@@ -1208,7 +1232,7 @@ function advanceConvo(talker, labelName, chatDelay){
 		setTimeout(function(){
 			logMessage(newChatString);
 			setTimeout(function(){
-				updateChoices("idle");
+				updateChoices("inspectMenu");
 			}, chatSpeed);
 		}, chatDelay);
 	}
@@ -1242,7 +1266,7 @@ function advanceConvo(talker, labelName, chatDelay){
 			else{
 				//just in case, so we are not having a loop
 				logMessage("Negotiations have failed")
-				updateChoices("idle")
+				updateChoices("inspectMenu")
 			}
 		}, chatDelay)
 	}
@@ -1310,4 +1334,93 @@ function updateConvo(goober, labelName){
 	replyArray.forEach(function(response){
 		menuState["conversation"].choices.push({name: "playerTalk", target:[goober, response, labelName]});
 	})
+}
+
+function updateFightMenu(enemy){
+	//first make the combat menu empty
+	menuState["fightMenu"].choices.length = 0;
+	//what are we wielding?
+	var weaponArray = character.equipment.filter(item => itemDictionary[item.name].slot === "weapon")
+	weaponArray.forEach(function(weapon){
+		menuState["fightMenu"].choices.push({name: "fight with", target: [weapon, enemy]})
+	})
+	//maybe an option for unarmed? 
+	if (weaponArray.length === 0){
+		menuState["fightMenu"].choices.push({name: "fight with", target: [{name: "your bare hands"}, enemy]})
+	}
+	//push the back option
+	menuState["fightMenu"].choices.push({name: "back"})
+}
+function updateWeaponMenu(weapon, enemy){
+	menuState["weaponMenu"].choices.length = 0;
+	//find all the moves for the weapon!
+	const weaponTags = itemDictionary[weapon.name].tags
+	var actionArray = Object.keys(actionDict).filter(move => {
+		const moveTags = actionDict[move].tags;
+		return moveTags.some(tag => weaponTags.includes(tag));
+	});
+	actionArray.forEach(function(availableAction){
+		menuState["weaponMenu"].choices.push({name: "wpnAction", target: [weapon, enemy, actionDict[availableAction]]})
+	})
+
+	//push the back option
+	menuState["weaponMenu"].choices.push({name: "back"})
+}
+function resolveAttack(fighter, fightTarget, fightmove, weapon){
+//ok this is where we resolve it!
+//who is attacking?
+var fighterName
+var fighterPronouns
+var targetName
+var targetPronouns
+var randomTry
+if(fighter === character){
+	fighterName = "you";
+	fighterPronouns = ["you", "you", "your"];
+	randomTry = fightmove.tryPhrases[Math.floor(Math.random() * fightmove.tryPhrases.length)]
+}
+else{
+	if(npcDictionary[fighter.name].known === true){
+		fighterName = npcDictionary[fighter.name].name;
+	}else{
+		fighterName = "the " + npcDictionary[fighter.name].short_description
+	}
+	fighterPronouns = npcDictionary[fighter.name].pronouns
+	randomTry = fightmove.otherTryPhrases[Math.floor(Math.random() * fightmove.tryPhrases.length)]
+}
+if(fightTarget === character){
+	targetName = "you";
+	targetPronouns = ["you", "you", "your"];
+}
+else{
+	if(npcDictionary[fightTarget.name].known === true){
+		targetName = npcDictionary[fightTarget.name].name;
+	}else{
+		targetName = "the " + npcDictionary[fightTarget.name].short_description
+	}
+	targetPronouns = npcDictionary[fightTarget.name].pronouns
+}
+// assemble the phrase!
+var longerPart = " with " + fighterPronouns[2] + " " + weapon.name + "!";
+//see if the fighter has done this before
+if (fighter.hasOwnProperty("lastmove")){
+	if (fighter.lastmove === fightmove){
+		longerPart = "."
+	}
+}
+var attackTryText = fighterName + " " + randomTry + " " + targetName + longerPart;
+attackTryText = capFirst(attackTryText);
+logMessage(attackTryText);
+fighter.lastmove = fightmove;
+setTimeout(function(){
+	logMessage("HIT!")
+	setTimeout(function(){
+		logMessage("This is the hit text!")
+	},900)
+},900)
+
+}
+function advanceFight(currentTurnChar){
+	//ok one jumbo function!
+	//this will handle the fight turns I guess.
 }

@@ -127,7 +127,8 @@ var itemDictionary = {
         long_description: "A strong, sharp, well-made greataxe. It requires both hands.",
         value: 25,
         use: "equip",
-        slot: "weapon"
+        slot: "weapon",
+        tags: ["greataxe", "two-handed"]
     },
     "wooden spear": {
         name: "wooden spear",
@@ -136,6 +137,7 @@ var itemDictionary = {
         value: 2,
         use: "equip",
         slot: "weapon",
+        tags:["spear"],
         fishingGear: 5
     }
 }
@@ -300,7 +302,7 @@ actionDict = {
         otherTryPhrases: ["quickly lunges at", "stabs at", "thrusts at"],
         hitPhrases: ["stabs", "skewers", "pierces"]
     },
-    "slashing swing":{
+    "slashing swing":{//this one is quick
         name:"swing",
         type: "melee",
         tags: ["sword"],

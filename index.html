@@ -12,8 +12,56 @@
 <body>
     <div id="versionNo">Version Text</div>
     <div id="centered">
-        <div id="pictureArea">
-            <img id="picture" src="./files/template.png" alt="forest clearing">
+        <div id="CRTscreen">
+            <div id="pictureFrame">
+                <img id="mainPic" src="./files/template.png" alt="forest clearing" class="js-crt-effect">
+            </div>
+            <svg style="display: none;">
+                <filter id="r"><feColorMatrix
+                    type="matrix"
+                    values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0 "/>
+                </filter>
+                <filter id="g"><feColorMatrix
+                    type="matrix"
+                    values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0 "/>
+                </filter>
+                <filter id="b"><feColorMatrix
+                    type="matrix"
+                    values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0 "/>
+                </filter>
+            </svg>
+            <script>
+                const images = document.querySelectorAll(".js-crt-effect");
+
+                images.forEach(image => VHSify(image));
+
+                function VHSify(image) {
+                    if (
+                        !CSS.supports("mix-blend-mode", "screen") ||
+                        !CSS.supports("filter", "url()")
+                    ) {
+                        return;
+                        }
+                    const container = document.createElement("div");
+                    const images = RGBImages(image);
+
+                    images.forEach(image => container.appendChild(image));
+                    container.classList.add("crt-effect");
+
+                    image.replaceWith(container);
+                }
+
+                function RGBImages(image) {
+                    const colors = ["r", "g", "b"];
+                    const images = colors.map(color => {
+                        const img = image.cloneNode();
+                        img.classList.add(`crt-effect__${color}`);
+                        return img;
+                    });
+
+                    return images;
+                }
+            </script>
         </div>
         <div id="logArea">
 			<!--<a id="clearButton">clear</a> -->

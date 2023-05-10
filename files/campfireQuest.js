@@ -22,7 +22,24 @@ var menuState = {
 var menuStateIndex = "start";
 var previousMenuStateIndex = "start";
 var inCombat = false;
-var character = { pcName: "You", nickname: "",named: false,inventory: [], equipment: [], location: "clearing" , lastmove: "none"};
+var turnOrder =[];
+var character = { 
+	pcName: "You", 
+	nickname: "",
+	named: false,
+	inventory: [],
+	equipment: [],
+	location: "clearing" ,
+	lastmove: "none",
+	isHiding: false,
+	stats:[
+		{hp: 100},
+		{maxHp: 100},
+		{speed: 10},
+		{stealth: 10},
+		{attack: 15},
+	]
+};
 
 
 
@@ -43,6 +60,7 @@ function startQuest(){
 }
 
 function updateChoices(newState){
+	//logMessage("Debug: Changing to "+newState)
 	choiceArea.innerHTML = '';
 	if (newState != menuStateIndex) {
 		previousMenuStateIndex = menuStateIndex;
@@ -75,6 +93,9 @@ function updateChoices(newState){
 		if (["pickup","openItemMenu", "inspectAt", "playerTalk", "considerBuy",].includes(choice.name)){
 			choiceText = "";
 		}
+		else if (choice.name === "hide"){
+			//do nothing!
+		}
 		else{
 			choiceText += " ";
 		}
@@ -99,10 +120,10 @@ function updateChoices(newState){
 				choiceText += ""
 			}
 			else if (choice.name === "fight with"){
-				choiceText = choice.target[0].name
+				choiceText = choice.target.name
 			}
 			else if (choice.name === "wpnAction"){
-				choiceText = choice.target[2].name
+				choiceText = choice.target[1].name
 			}
 			else if(["playerTalk"].includes(choice.name)){
 				choiceText = choice.target[1].m
@@ -290,9 +311,40 @@ function executeChoice(choiceName, target, quantity) {
 			newMessage = exitLister(areas[character.location]) + ". Where do you move?";
       	break;
 		case "moveTo":
+			newMessage = "";
       		// do something for "moveTo" choice
 			const destination = areas[character.location].exits.find(exit => exit.name === target)
-			newMessage = "You " + destination.transit + " the " + destination.exitName;
+			//are we in combat? Maybe you can't escape!
+			if (inCombat === true){
+				//test to see if we can escape!
+				var caughtBy = turnOrder.forEach(function(npcToEscape){
+					//skip the character
+					if(npcToEscape != character){
+						//test our speed against theirs
+						const enemyspeed = npcToEscape.stats.find((stat) => stat.speed)?.speed || 0;
+						const charspeed = character.stats.find((stat) => stat.speed)?.speed || 0;
+						const escapeDC = 50 - enemyspeed + charspeed
+						if (roll("1d100+0") < escapeDC){
+							//this guy didn't catch us!
+						}
+						else{
+							//this guy caught us!
+							return npcToEscape;
+						}
+					}
+				})
+				if (caughtBy != 'undefined'){
+					newMessage = "You try to run, but " + caughtBy.name + " blocks your escape!"
+					advanceFight()
+					newState = "empty";
+					break;
+				}
+				else{
+					newMessage = "You get away safely! "
+					inCombat = false;
+				}
+			}
+			newMessage += "You " + destination.transit + " the " + destination.exitName;
 			if (destination.name !== destination.exitName) {
 				newMessage += " and find yourself " + areas[destination.name].short_description
 			}
@@ -534,8 +586,13 @@ function executeChoice(choiceName, target, quantity) {
 		break;
 		case "attack":
 			//attack this thing!!!
-			menuState["combat"].choices.find(option => option.name === "fight").target = target;
-			newState = "combat"
+			//menuState["combat"].choices.find(option => option.name === "fight").target = target;
+			newState = "empty"
+			if(inCombat === false){
+				inCombat = true;
+				//roll iniative!
+				iniative(target);
+			}
 		break;
 		case "drop":
 			newMessage = "You drop the " + pluralCheck(target, quantity, "short") + " in the " + character.location + ".";
@@ -612,25 +669,32 @@ function executeChoice(choiceName, target, quantity) {
 		break;
     	case "fight":
       		// do something for "fight" choice
-			updateFightMenu(target)
+			updateFightMenu()
 			newState = "fightMenu"
       	break;
 		case "fight with":
-			updateWeaponMenu(target[0], target[1])
+			updateWeaponMenu(target)
 			newState = "weaponMenu"
 		break;
 		case "wpnAction":
 			//perform the wpn action I guess
 			//do you know the target personally?
-			resolveAttack(character, target[1], target[2], target[0])
+			var attackTarget = turnOrder[0]
+			newState = "empty"
+			resolveAttack(character, attackTarget, target[1], target[0])
 		break;
 		case "items":
-      		// do something for "run" choice
+      		// do something for "items" choice
       	break;	
     	case "run":
       		// do something for "run" choice
+			updateExits(areas[character.location])
 			newState = "moveMenu"
       	break;
+		case "hide":
+			//test our hide skill against all npcs in area
+			newMessage = "There's no where to hide!"
+		break;
     	default:
       	// handle unrecognized choice
 			newMessage = "The fates have not determined that choice yet"
@@ -1336,22 +1400,42 @@ function updateConvo(goober, labelName){
 	})
 }
 
-function updateFightMenu(enemy){
+function iniative(enemy){
+	//determine an iniative order
+	//put all combatants into an array
+	var combatant = npcDictionary[enemy.name]
+	turnOrder.length = 0
+	turnOrder.push(character)
+	turnOrder.push(combatant) //to be changed to multiple
+	turnOrder.sort(function(a, b){
+		const speedA = a.stats.find((stat) => stat.speed)?.speed || 0;
+  		const speedB = b.stats.find((stat) => stat.speed)?.speed || 0;
+  		return speedA - speedB;
+	})
+	//that SHOULD be sorted!
+	//here's a little test..should be the skeleton
+	logMessage(turnOrder[0].name + " is the first!")
+	//send the combatant (its a copy I think!) not the enemy
+	advanceFight()
+}
+
+function updateFightMenu(){
 	//first make the combat menu empty
 	menuState["fightMenu"].choices.length = 0;
 	//what are we wielding?
 	var weaponArray = character.equipment.filter(item => itemDictionary[item.name].slot === "weapon")
 	weaponArray.forEach(function(weapon){
-		menuState["fightMenu"].choices.push({name: "fight with", target: [weapon, enemy]})
+		menuState["fightMenu"].choices.push({name: "fight with", target: weapon})
 	})
 	//maybe an option for unarmed? 
 	if (weaponArray.length === 0){
-		menuState["fightMenu"].choices.push({name: "fight with", target: [{name: "your bare hands"}, enemy]})
+		menuState["fightMenu"].choices.push({name: "fight with", target: {name: "your bare hands"}})
 	}
 	//push the back option
 	menuState["fightMenu"].choices.push({name: "back"})
 }
-function updateWeaponMenu(weapon, enemy){
+
+function updateWeaponMenu(weapon){
 	menuState["weaponMenu"].choices.length = 0;
 	//find all the moves for the weapon!
 	const weaponTags = itemDictionary[weapon.name].tags
@@ -1360,12 +1444,13 @@ function updateWeaponMenu(weapon, enemy){
 		return moveTags.some(tag => weaponTags.includes(tag));
 	});
 	actionArray.forEach(function(availableAction){
-		menuState["weaponMenu"].choices.push({name: "wpnAction", target: [weapon, enemy, actionDict[availableAction]]})
+		menuState["weaponMenu"].choices.push({name: "wpnAction", target: [weapon, actionDict[availableAction]]})
 	})
 
 	//push the back option
 	menuState["weaponMenu"].choices.push({name: "back"})
 }
+
 function resolveAttack(fighter, fightTarget, fightmove, weapon){
 //ok this is where we resolve it!
 //who is attacking?
@@ -1413,14 +1498,37 @@ attackTryText = capFirst(attackTryText);
 logMessage(attackTryText);
 fighter.lastmove = fightmove;
 setTimeout(function(){
-	logMessage("HIT!")
+	logMessage("HIT!...or MISS!")
 	setTimeout(function(){
 		logMessage("This is the hit text!")
+		advanceFight()
 	},900)
 },900)
 
 }
-function advanceFight(currentTurnChar){
-	//ok one jumbo function!
-	//this will handle the fight turns I guess.
+
+function advanceFight(){
+	var currentTurnChar = turnOrder[0]
+	updateChoices("empty")
+	//resolve any ongoing effects
+	//ok so maybe this whole thing is wrapped in a timeout function
+	setTimeout(function(){
+		if (currentTurnChar === character){
+			logMessage("It's your turn!");
+			//give us some options babeeee
+			updateChoices("combat");
+			const firstInTurnOrder = turnOrder.shift();
+			turnOrder.push(firstInTurnOrder);
+		}
+		else{
+			updateChoices("empty")
+			//figure out what enemy does, then next
+			logMessage("The " + currentTurnChar.name + " does something.")
+			//advance to the next character in the turn order
+			const firstInTurnOrder = turnOrder.shift();
+			turnOrder.push(firstInTurnOrder);
+			advanceFight()//to be moved
+		}
+	},900)
+	
 }

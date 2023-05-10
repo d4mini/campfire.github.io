@@ -151,6 +151,9 @@ var npcDictionary = {
         short_description: "chonky frog",
         long_description: "a large frog with big yellow eyes. He croaks loudly",
         doing: "sitting by the well",
+        stats: [
+            {perception: 25},
+        ],
         talk: [ 
             {label: "g0", scene: "The frog stares at you.", replies: [
                 {m: "\"Hello?\"", next: "intro1"},
@@ -185,6 +188,9 @@ var npcDictionary = {
         focusItem: [],
         justBought: false,
         contents: [{name: "health potion", qty: 5},{name: "wooden spear", qty: 2}],
+        stats: [
+            {perception: 25},
+        ],
         talk: [ 
             {label: "g0", scene: "The merchant eyes you up as you approach.", next: "intro0"},
             {label: "g1", npc: "\"We meet again.\"", next: "query0"},
@@ -268,14 +274,16 @@ var npcDictionary = {
             {label: "g1", scene: "The only sound the skeleton makes the occasional creak of bones.", next: "end"},
         ],
         hostility: 50,
+        seenChars:[],
         weaknesses: ["crushing", "light"],
-        resistances: ["acid"],
+        resistances: ["acid", "piercing"],
         immunities: ["poison", "healing"],
         stats: [
-            {"hp": 100},
-            {"maxhp": 100},
-            {"armor": 5},
-            {"speed": 5},
+            {hp: 20},
+            {maxhp: 20},
+            {armor: 10},
+            {speed: 5},
+            {perception: 10},
         ],
         tags:["skeleton", "sword"]
     }

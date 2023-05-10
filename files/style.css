@@ -15,6 +15,7 @@ body {
 	background-color: var(--backg);
 	color: var(--main);
 	margin: 0px;
+	animation: fadeInCrt 700ms ease-in-out;
 }
 
 ::-moz-selection { /* Code for Firefox */
@@ -53,12 +54,12 @@ body {
     left:50%;
     transform:translate(-50%,-50%);
     /* border: solid 2px var(--main); */
-    width: 600px;
+    width: 540px;
 }
-@media only screen and (max-width: 620px) {
+@media only screen and (max-width: 600px) {
     /* For mobile phones: */
     #centered {
-      width: 100%;
+      width: 90%;
     }
 }
 #versionNo{
@@ -67,13 +68,35 @@ body {
 	padding: 0.2rem;
 }
 
-#pictureArea{
-    width: 90%;
+#CRTscreen{
+	width: 100%;
+	padding-top: 50%;
     margin: auto;
     margin-bottom: 1rem;
+	position: relative;
 }
 
-#picture{
+#CRTscreen::before{
+	content: "";
+	display: block;
+	position: absolute;
+	top:0;
+	width: 100%;
+	padding-top: 50%;
+	background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+	z-index: 2;
+	background-size: 100% 2px, 3px 100%;
+	pointer-events: none;
+
+}
+
+#pictureFrame{
+	width:100%;
+	top:0;
+	position: absolute;
+}
+
+#mainPic{
     width: 100%;
 }
 
@@ -81,11 +104,43 @@ img {
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
+	display: block;
+}
+
+.crt-effect { 
+	overflow: hidden;
+	position: relative;
+}
+
+.crt-effect__b{
+	filter: url('#b');
+}
+
+.crt-effect__g{
+	filter: url('#g');
+	transform: translate(-0.2%, -0.4%);
+	left: 0;
+    mix-blend-mode: screen;
+    position: absolute;
+    top: 0;
+    transition: transform .4s;
+    z-index: 1;
+}
+
+.crt-effect__r{
+	filter: url('#r');
+	transform: translate(0.2%, 0.4%);
+	left: 0;
+    mix-blend-mode: screen;
+    position: absolute;
+    top: 0;
+    transition: transform .4s;
+    z-index: 1;
 }
 
 #logArea{
+	width: 100%;
 	font-size: 1rem;
-	width: 90%;
 	height: 11rem;
 	margin: auto;
 	margin-bottom: 1rem;

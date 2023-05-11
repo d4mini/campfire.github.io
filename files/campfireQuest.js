@@ -317,24 +317,28 @@ function executeChoice(choiceName, target, quantity) {
 			//are we in combat? Maybe you can't escape!
 			if (inCombat === true){
 				//test to see if we can escape!
-				var caughtBy = turnOrder.forEach(function(npcToEscape){
+				var caughtBy
+				turnOrder.forEach(function(npcToEscape){
 					//skip the character
 					if(npcToEscape != character){
 						//test our speed against theirs
 						const enemyspeed = npcToEscape.stats.find((stat) => stat.speed)?.speed || 0;
 						const charspeed = character.stats.find((stat) => stat.speed)?.speed || 0;
 						const escapeDC = 50 - enemyspeed + charspeed
-						if (roll("1d100+0") < escapeDC){
+						var escapeRoll = roll("1d100+0")
+						logMessage("You roll a " + escapeRoll + " to escape! The DC is " + escapeDC)
+						if (escapeRoll < escapeDC){
 							//this guy didn't catch us!
 						}
 						else{
 							//this guy caught us!
-							return npcToEscape;
+							caughtBy = npcToEscape.name;
+							return;
 						}
 					}
 				})
-				if (caughtBy != 'undefined'){
-					newMessage = "You try to run, but " + caughtBy.name + " blocks your escape!"
+				if (caughtBy != undefined){
+					newMessage = "You try to run, but " + caughtBy + " blocks your escape!"
 					advanceFight()
 					newState = "empty";
 					break;
@@ -591,7 +595,7 @@ function executeChoice(choiceName, target, quantity) {
 			if(inCombat === false){
 				inCombat = true;
 				//roll iniative!
-				iniative(target);
+				determineInitiative(target);
 			}
 		break;
 		case "drop":
@@ -688,7 +692,7 @@ function executeChoice(choiceName, target, quantity) {
       	break;	
     	case "run":
       		// do something for "run" choice
-			updateExits(areas[character.location])
+			updateExits([character.location])
 			newState = "moveMenu"
       	break;
 		case "hide":
@@ -1400,17 +1404,21 @@ function updateConvo(goober, labelName){
 	})
 }
 
-function iniative(enemy){
+function determineInitiative(enemy){
 	//determine an iniative order
 	//put all combatants into an array
 	var combatant = npcDictionary[enemy.name]
 	turnOrder.length = 0
 	turnOrder.push(character)
 	turnOrder.push(combatant) //to be changed to multiple
+	turnOrder.forEach(function(participant){
+		var speedStat = participant.stats.find((stat) => stat.speed)?.speed || 0;
+		var initiativeRoll = "1d100+" + speedStat
+		initiativeRoll = roll(initiativeRoll)
+		participant.initiative = initiativeRoll
+	})
 	turnOrder.sort(function(a, b){
-		const speedA = a.stats.find((stat) => stat.speed)?.speed || 0;
-  		const speedB = b.stats.find((stat) => stat.speed)?.speed || 0;
-  		return speedA - speedB;
+  		return a.initiative - b.initiative;
 	})
 	//that SHOULD be sorted!
 	//here's a little test..should be the skeleton

@@ -1,7 +1,7 @@
 //here it is
 let startGame = false;
 let choiceArea = document.getElementById('gameChoices');
-var versionNumber = "0.12 Talktative Parrot"
+var versionNumber = "0.15 Curious Penguin"
 var menuState = {
 	"start": {choices: [{name: "get up"}, {name: "recall name"}]},
 	"form": {objectsToBeNamed: []},
@@ -9,6 +9,8 @@ var menuState = {
 	"combat": {choices: [{name:"fight"}, {name:"items"}, {name:"run"}]},
 	"fightMenu": {choices: []},
 	"weaponMenu": {choices: []},
+	"continueFight":{choices: [{name: "continue"}]},
+	"endTurn":{choices: [{name: "end turn"}]},
 	"backpack": {choices: [{name:"back"}, {name:"worn"}]},
 	"itemMenu": {choices: [{name:"back"}]},
 	"container": {choices: [{name: "back"}]},
@@ -988,6 +990,28 @@ function exitLister(area) {
 function describeArea(area) {
 	//add area description
 	var areaDesc = "You are in " + area.long_description;
+	//add ppl
+	if (area.npcs.length >0){
+		var pplstring = "";
+		//if there are 2 or fewer, describe what they are doing.
+		var tellWhatDoing = false
+		if (areas.npcs.length < 3){tellWhatDoing = true}else{tellWhatDoing = false}
+		var countByValue = {};
+		for (const obj of area.npcs) {//change between short descriptions and names
+			const name = obj.name
+			if (countByValue[name]) {
+				countByValue[name]++;
+			} else {
+				countByValue[name] = 1;
+			}
+		}
+		for (const key in countByValue) {
+			let count = countByValue[key];
+			const pluralSuffix = count !== 1 ? 's' : '';
+			count = count === 1 ? 'a' : count;
+			pplstring += `${count} ${key}${pluralSuffix}, `;
+		  }
+	}
 	//add fixtures
 	if (area.fixtures.length > 0){
 		areaDesc += " There is a "
@@ -1056,11 +1080,11 @@ function updateIdle(){
 	fixtureArray.forEach(function(fixture) {
 		menuState["inspect"].choices.push({name: "inspectAt", target: fixture});
 	})
-	menuState["inspect"].choices.push({name: "back"});
 	if (itemArray.length > 0 && itemArray.some(item => item.seen === true)) {
 		//test how many objects are seen
 		menuState["inspect"].choices.push({name: "pickup..."});
 	}
+	menuState["inspect"].choices.push({name: "back"});
 }
 
 function updateInspectMenu(object){

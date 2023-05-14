@@ -987,15 +987,19 @@ function exitLister(area) {
 	return areaExits;
 }
 
+function npcLister(area){
+	//list the npcs
+}
+
 function describeArea(area) {
 	//add area description
-	var areaDesc = "You are in " + area.long_description;
+	var areaDesc = "You are in " + area.long_description + " ";
 	//add ppl
-	if (area.npcs.length >0){
+	if (area.npcs.length > 0){
 		var pplstring = "";
 		//if there are 2 or fewer, describe what they are doing.
 		var tellWhatDoing = false
-		if (areas.npcs.length < 3){tellWhatDoing = true}else{tellWhatDoing = false}
+		if (area.npcs.length < 3){tellWhatDoing = true}else{tellWhatDoing = false}
 		var countByValue = {};
 		for (const obj of area.npcs) {//change between short descriptions and names
 			const name = obj.name
@@ -1005,12 +1009,36 @@ function describeArea(area) {
 				countByValue[name] = 1;
 			}
 		}
-		for (const key in countByValue) {
+
+		const keys = Object.keys(countByValue);
+		const lastKey = keys[keys.length -1];
+
+		for (const key of keys) {
 			let count = countByValue[key];
 			const pluralSuffix = count !== 1 ? 's' : '';
 			count = count === 1 ? 'a' : count;
-			pplstring += `${count} ${key}${pluralSuffix}, `;
-		  }
+			let creature = `${count} ${npcDictionary[key].short_description}${pluralSuffix}`;
+			if (tellWhatDoing){
+				if(count > 1){
+					creature += " are "
+				}
+				else{
+					creature += " is "
+				}
+				creature += npcDictionary[key].doing
+			}
+			if (key === lastKey && keys.length > 1){
+				pplstring += `and ${creature}`;
+			} else {
+				pplstring += creature;
+			}
+		
+			if (key !== lastKey) {
+				result += ", ";
+			}
+		}
+		pplstring = capFirst(pplstring) + ". "
+		areaDesc += pplstring
 	}
 	//add fixtures
 	if (area.fixtures.length > 0){

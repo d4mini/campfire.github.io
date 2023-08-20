@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Campfire</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./files/style.css">
+	<link rel="icon" type="image/x-icon" href="./files/fire.png">
+    <script src="./files/campfireQuest.js"></script>
+	<script src="./files/data.js"></script>
+</head>
+<body>
+    <div id="versionNo">Version Text</div>
+    <div id="centered">
+        <div id="CRTscreen">
+            <div id="pictureFrame">
+                <img id="mainPic" src="./files/template.png" alt="forest clearing" class="js-crt-effect">
+            </div>
+            <svg style="display: none;">
+                <filter id="r"><feColorMatrix
+                    type="matrix"
+                    values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0 "/>
+                </filter>
+                <filter id="g"><feColorMatrix
+                    type="matrix"
+                    values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0 "/>
+                </filter>
+                <filter id="b"><feColorMatrix
+                    type="matrix"
+                    values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0 "/>
+                </filter>
+            </svg>
+            <script>
+                const images = document.querySelectorAll(".js-crt-effect");
+
+                images.forEach(image => VHSify(image));
+
+                function VHSify(image) {
+                    if (
+                        !CSS.supports("mix-blend-mode", "screen") ||
+                        !CSS.supports("filter", "url()")
+                    ) {
+                        return;
+                        }
+                    const container = document.createElement("div");
+                    const images = RGBImages(image);
+
+                    images.forEach(image => container.appendChild(image));
+                    container.classList.add("crt-effect");
+
+                    image.replaceWith(container);
+                }
+
+                function RGBImages(image) {
+                    const colors = ["r", "g", "b"];
+                    const images = colors.map(color => {
+                        const img = image.cloneNode();
+                        img.classList.add(`crt-effect__${color}`);
+                        return img;
+                    });
+
+                    return images;
+                }
+            </script>
+        </div>
+        <div id="logArea">
+			<!--<a id="clearButton">clear</a> -->
+			<div id="logs">
+                <p class="gameTitle">
+                _______________________________________________________________<br>
+                &nbsp____&nbsp&nbsp___&nbsp&nbsp___&nbsp&nbsp__ _____ _____ __ _____ _____<br>
+                //&nbsp&nbsp&nbsp&nbsp||-||&nbsp|| \/ | ||_// ||--&nbsp&nbsp|| ||_// ||--<br>
+                &nbsp\\__&nbsp&nbsp|| || ||&nbsp&nbsp&nbsp&nbsp| ||&nbsp&nbsp&nbsp&nbsp||&nbsp&nbsp&nbsp&nbsp|| || \\ ||___<br>
+                _______________________________________________________________<br><br>
+                by Michael Damini<br>
+                VERSION 0.15<br>
+                </p>
+			</div>
+			<div id="gameChoices">
+			<a href="javascript:startQuest()">wake up</a>
+			</div>
+		</div>
+    </div>
+</body>
+<script>
+    var consoleDiv = document.getElementById('logs');
+    function logMessage(message) {
+	    for (var i = 0; i < consoleDiv.children.length; i++){
+		    consoleDiv.children[i].classList.add('old');
+	    }
+	    var newParagraph = document.createElement('p');
+        newParagraph.innerHTML = message;
+        consoleDiv.appendChild(newParagraph);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+    var versionCounter = document.getElementById('versionNo')
+	versionCounter.textContent = "V" + versionNumber
+</script>
+</html>

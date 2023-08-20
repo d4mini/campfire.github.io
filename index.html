@@ -1,99 +1,305 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Campfire</title>
+    <title>Truth or Dare</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="./files/style.css">
-	<link rel="icon" type="image/x-icon" href="./files/fire.png">
-    <script src="./files/campfireQuest.js"></script>
-	<script src="./files/data.js"></script>
 </head>
 <body>
-    <div id="versionNo">Version Text</div>
     <div id="centered">
-        <div id="CRTscreen">
-            <div id="pictureFrame">
-                <img id="mainPic" src="./files/template.png" alt="forest clearing" class="js-crt-effect">
-            </div>
-            <svg style="display: none;">
-                <filter id="r"><feColorMatrix
-                    type="matrix"
-                    values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0 "/>
-                </filter>
-                <filter id="g"><feColorMatrix
-                    type="matrix"
-                    values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0 "/>
-                </filter>
-                <filter id="b"><feColorMatrix
-                    type="matrix"
-                    values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0 "/>
-                </filter>
-            </svg>
-            <script>
-                const images = document.querySelectorAll(".js-crt-effect");
-
-                images.forEach(image => VHSify(image));
-
-                function VHSify(image) {
-                    if (
-                        !CSS.supports("mix-blend-mode", "screen") ||
-                        !CSS.supports("filter", "url()")
-                    ) {
-                        return;
-                        }
-                    const container = document.createElement("div");
-                    const images = RGBImages(image);
-
-                    images.forEach(image => container.appendChild(image));
-                    container.classList.add("crt-effect");
-
-                    image.replaceWith(container);
-                }
-
-                function RGBImages(image) {
-                    const colors = ["r", "g", "b"];
-                    const images = colors.map(color => {
-                        const img = image.cloneNode();
-                        img.classList.add(`crt-effect__${color}`);
-                        return img;
-                    });
-
-                    return images;
-                }
-            </script>
+        <div id="paragraph">
+            <!--This is where out output is generated-->
+            <p id="genParagraph">Truth or Dare?</p>
         </div>
-        <div id="logArea">
-			<!--<a id="clearButton">clear</a> -->
-			<div id="logs">
-                <p class="gameTitle">
-                _______________________________________________________________<br>
-                &nbsp____&nbsp&nbsp___&nbsp&nbsp___&nbsp&nbsp__ _____ _____ __ _____ _____<br>
-                //&nbsp&nbsp&nbsp&nbsp||-||&nbsp|| \/ | ||_// ||--&nbsp&nbsp|| ||_// ||--<br>
-                &nbsp\\__&nbsp&nbsp|| || ||&nbsp&nbsp&nbsp&nbsp| ||&nbsp&nbsp&nbsp&nbsp||&nbsp&nbsp&nbsp&nbsp|| || \\ ||___<br>
-                _______________________________________________________________<br><br>
-                by Michael Damini<br>
-                VERSION 0.15<br>
-                </p>
-			</div>
-			<div id="gameChoices">
-			<a href="javascript:startQuest()">wake up</a>
-			</div>
-		</div>
+        <div id="buttons">
+            <button id="generateTruth" class="button">Truth</button><button id="generateDare" class="button">Dare</button>
+        </div>
     </div>
-</body>
-<script>
-    var consoleDiv = document.getElementById('logs');
-    function logMessage(message) {
-	    for (var i = 0; i < consoleDiv.children.length; i++){
-		    consoleDiv.children[i].classList.add('old');
+    <script>
+         // Array of messages
+        var truths = [
+            "Who is your celebrity crush?",
+            "When was the last time you lied?",
+            "When was the last time you cried?",
+            "What's your biggest fear?",
+            "What's your biggest fantasy?",
+            "Who's the last person you searched on Instagram?",
+            "What's the strangest thing you've ever eaten?",
+            "What's your relationship dealbreaker?",
+            "What's a secret you've never told anyone?",
+            "Do you have a hidden talent?",
+            "Who was your first celebrity crush?",
+            "Have you ever cheated in an exam?",
+            "If you were going to be on a reality TV show, which would it be?",
+            "What's your biggest insecurity?",
+            "What's the biggest mistake you've ever made?",
+            "What's one thing you hate people knowing about you?",
+            "What's the worst thing anyone's ever done to you?",
+            "What's the best thing anyone's ever done for you?",
+            "What's your worst habit?",
+            "What's the biggest misconception about you?",
+            "What's one thing you wish people knew about you?",
+            "Why did your last relationship break down?",
+            "What's the best piece of advice you've been given?",
+            "What's the most you've spent on a night out?",
+            "Have you ever returned or re-gifted a present?",
+            "Do you have a favourite sibling?",
+            "What have you purchased that's been the biggest waste of money?",
+            "How would you rate your looks on a scale of 1 to 10?",
+            "What celebrity do you look up to?",
+            "If you could be one celebrity for a day, who would it be?",
+            "If you could do any job in the world, what would it be?",
+            "What's your dream life?",
+            "What do you value the most - money, fame, success, friends, family, etc?",
+            "What's the drunkest you've ever been?",
+            "What's the most embarrassing thing you've ever done?",
+            "What's the most disgusting thing you've ever done?",
+            "What's the most embarrassing thing you've done in a taxi?",
+            "What's the silliest reason you've left a club early?",
+            "Tell me about your first kiss",
+            "What was the most inappropriate time you farted?",
+            "What's something you really hope your family never finds out about?",
+            "Who do you think is the worst-dressed person in this room?",
+            "Have you ever practised kissing in a mirror?",
+            "What's your worst fashion moment?",
+            "What's your biggest pet peeve?",
+            "What TV character do you relate to the most?",
+            "Have you ever dined and dashed?",
+            "Have you ever had sex on the beach?",
+            "Would you like to be a member of the mile-high club?",
+            "Would you consider going on Love Island?",
+            "What's the worst meal you've ever cooked?",
+            "Have you ever done a strip tease for a partner?",
+            "If you could pick one other player to take with you to a deserted island, who would it be?",
+            "If you suddenly had a million pounds, how would you spend it?",
+            "Where's the weirdest place you peed?",
+            "Have you ever peed in the shower?",
+            "What's the strangest dream you've had?",
+            "Where's the weirdest place you've had sex?",
+            "What's one thing you only do when you're alone?",
+            "What's the strangest rumour you've heard about yourself?",
+            "What's your favourite gross food combination?",
+            "What's the weirdest lie you've ever told?",
+            "Do you have any fake social media accounts?",
+            "Have you ever peed in the pool?",
+            "What gives you the ick?",
+            "What's the weirdest thing you've ever eaten?",
+            "What is a weird food that you love?",
+            "What was your biggest childhood fear?",
+            "What's the worst thing you've ever done at work?",
+            "Do you have any fetishes?",
+            "What's something you're glad your family doesn't know about you?",
+            "What's the worst thing you've ever done?",
+            "What are your thoughts on polyamory?",
+            "What's the worst intimate experience you've ever had?",
+            "What's the best intimate experience you've ever had?",
+            "Have you ever broken the law?",
+            "Have you ever stayed friends with someone because it benefitted you beyond just the friendship?",
+            "Who would you like to kiss in this room?",
+            "Have you ever had a run in with the law?",
+            "What's the worst thing you've ever said to anyone?",
+            "Have you ever been caught doing something you shouldn't have?",
+            "What's the worst date you've been on?",
+            "What's the best date you've been on?",
+            "What happened on the latest night out you had?",
+            "What's your biggest regret?",
+            "Have you ever said something you regret about someone in this room?",
+            "Have you ever lied to get out of a bad date?",
+            "What's the most trouble you've been in?",
+            "When did you last have sex outside?",
+            "What's the worst thing you've lied about?",
+            "What's one thing you wish you'd lied about?",
+            "Name a time you think you were a bad partner",
+            "What's your guilty pleasure?",
+            "If you had to get back with an ex, who would you choose?",
+            "Do you have a favourite friend?",
+            "What's your biggest turn on?",
+            "If you could swap lives with someone in this room, who would it be?",
+            "Have you ever told a lie about your BFF to make yourself look better?",
+            "Have you ever had a holiday romance?",
+            "Have you ever had a festival romance?",
+            "What is something you would do if you knew there were no consequences?"
+        ];
+
+        var dares = [
+            "Try to juggle 3 things of the group's choice",
+            "Show the most embarrassing photo on your phone",
+            "Show the last five people you texted and what the messages said",
+            "Let the rest of the group DM someone from your Instagram account",
+            "Do 100 squats",
+            "Let the group look in your Instagram DMs",
+            "Show us your screen time report",
+            "Keep three ice cubes in your mouth until they melt",
+            "Yell out the first word that comes to your mind",
+            "Keep your eyes closed until it's your go again",
+            "Empty out your wallet/purse and show everyone what's inside",
+            "Pretend to be the person to your right for 10 minutes",
+            "Eat a snack without using your hands",
+            "Whisper a secret to the person on your left",
+            "Say two honest things about everyone else in the group",
+            "Tell the saddest story you know",
+            "Hold your drink with two hands for the rest of the evening",
+            "Put on make-up without a mirror and leave it like that for the rest of the game",
+            "Neck the drink (responsibly) of the person on your right",
+            "Eat one spoonfuls of a condiment of your choice",
+            "Pretend to be a food item of your choice",
+            "Eat a raw piece of garlic",
+            "Give a lap dance to someone of your choice",
+            "Repeat everything the person on your right is saying until it's your turn again",
+            "Like the first 15 posts on your Facebook newsfeed",
+            "Eat a spoonful of mustard",
+            "Show your orgasm face",
+            "Seductively eat a banana",
+            "Do your best sexy crawl",
+            "Twerk for a minute",
+            "Try and make the group laugh as quickly as possible",
+            "Let another person in the group touch up your makeup",
+            "Talk in an American accent for the rest of the evening",
+            "Do your best celebrity impression",
+            "Play air guitar for 2 minutes straight",
+            "Howl like a wolf for two minutes",
+            "Dance without music for two minutes",
+            "Pole dance with an imaginary pole",
+            "Belt out the chorus of a cheesy ballad at full volume",
+            "Let someone else tickle you and try not to laugh",
+            "Down your drink (responsibly)",
+            "Try and make yourself cry in front of the group",
+            "Give a celebrity lookalike for every person in the room",
+            "Attempt to impersonate everyone in the room",
+            "Fill your mouth with drink and gargle your answer to the next Truth",
+            "Make another player jump in the next 10 minutes",
+            "Attempt the first TikTok dance on your for you page",
+            "Try not to laugh for the next 10 minutes",
+            "For the next 10 minutes, every time someone asks you something, respond with a bark",
+            "Call the first person in your phonebook and howl like a wolf",
+            "Let the person next to you wax you wherever they want",
+            "Do the cinnamon challenge",
+            "un out of the house and shout 'I'm not like a regular mom, I'm a cool mom!'",
+            "Rap the whole of WAP while dancing seductively",
+            "Narrate the game like a newsreader for the next round",
+            "Give a foot massage to the person on your right",
+            "Put 10 different available liquids into a cup and drink it",
+            "Try and get all the toes on one foot in your mouth",
+            "Try to put your whole fist in your mouth",
+            "Tell everyone an embarrassing story about yourself",
+            "Try to lick your elbow",
+            "Peel a banana with your toes",
+            "Say everything in a whisper for the next 10 minutes",
+            "Smell another player's armpit",
+            "Put as many snacks into your mouth at once as you can",
+            "Put your clothing on backwards for the rest of the evening",
+            "Put on as many layers as possible in 60 seconds",
+            "Smile as widely as you can and hold it for two minutes",
+            "Sit on the floor for the rest of the evening",
+            "Eat a raw egg",
+            "Sit in the corner of the room without speaking to anyone for the next 10 minutes",
+            "Let someone order something random on your Amazon account ($10 or under)",
+            "Eat a spoonful of black pepper",
+            "Eat a whole block of cheese",
+            "Walk around the room like a chicken for one minute",
+            "Read out the last dirty text you sent",
+            "Say something dirty to the person on your left",
+            "Remove four items of clothing",
+            "Send a sext to the last person in your phonebook",
+            "Post the oldest selfie on your phone on Instagram Stories",
+            "Scroll through your phone book until someone says stop. You either have to call or delete that person.",
+            "Tell the group two truths and a lie, and they have to guess which one the lie is",
+            "Reply to the first five Instagram Stories on your timeline",
+            "Share the first celebrity on your timeline's Instagram to your Story",
+            "Give a personalised insult to everyone in the room",
+            "Do a Facebook Live and say everything your friends tell you to",
+            "Update your relationship status to 'engaged' on Facebook",
+            "Call a person in the room's dad and tell him you think he's sexy",
+            "Post a random baby scan on Facebook",
+            "Update your Facebook status to tell your friends you're moving to Australia",
+            "Comment a fire emoji on the first five pictures on your Instagram feed",
+            "Add a family member to your girls' group chat and start a weird conversation",
+            "Let another player draw a washable marker mustache on you.",
+            "Perform a dance routine to a boy band song of the group’s choice.",
+            "How old are you? Whatever your age is, do that many squats.",
+            "Lead the group in a mini yoga class for one minute.",
+            "Let the other players pose you and remain in that position until your next turn.",
+            "Do a freestyle rap about the other players for one minute.",
+            "Make a silly face and keep it that way until someone in the group laughs.",
+            "Act out a commercial for a product chosen by the other players.",
+            "Talk and act like a celebrity until the group can guess who you are (this could go multiple turns!)",
+            "Post an unflattering selfie to your favorite social media account.",
+            "Go outside and do your best wolf howl at the moon.",
+            "Do your best interpretive dance/gymnastics floor routine.",
+            "Allow the other players to blindfold you and try to guess three food items from the pantry just by smell.",
+            "Try to drink a glass of water without using your hands.",
+            "Do an impression of another player until your next turn.",
+            "Comment a fire emoji on the first five pictures on your Instagram feed.",
+            "Perform a dramatic version of a monologue from a favorite TV show or movie.",
+            "Switch clothes with another player for the rest of the game.",
+            "Let another player draw a tattoo on your arm in permanent marker.",
+            "Speak in an Australian accent until your next turn.",
+            "Give a one-word “roast” to each other player.",
+            "Do as many push-ups as you can in one minute.",
+            "Show the weirdest item you have in your purse/pockets."
+        ];
+            
+        // Function to generate a random message
+        function generateRandomTruth() {
+            var randomIndex = Math.floor(Math.random() * truths.length);
+            var randomMessage = truths[randomIndex];
+            document.getElementById("genParagraph").textContent = randomMessage;
+        }
+        function generateRandomDare() {
+            var randomIndex = Math.floor(Math.random() * dares.length);
+            var randomMessage = dares[randomIndex];
+            document.getElementById("genParagraph").textContent = randomMessage;
+        }
+            
+        // Attach the function to the button's click event
+        document.getElementById("generateTruth").addEventListener("click", generateRandomTruth);
+        document.getElementById("generateDare").addEventListener("click", generateRandomDare);
+    </script>
+    <style>
+        body {
+            background-color: darkseagreen;
+        }
+        #genParagraph {
+            background-color: seashell;
+            padding: 1rem;
+            color: seagreen;
+        }
+        #centered {
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            border: solid 5px #ffb09e;
+            width: 540px;
+            text-align: center;
+            padding: 1rem;
+            font-size: 20px;
+            font-family: Georgia, Times, 'Times New Roman', serif;
+        }
+
+        .button {
+            background-color: #ffb09e;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 20px;
+            margin: 4px 2px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: Georgia, Times, 'Times New Roman', serif;
+        }
+    @media only screen and (max-width: 600px) {
+        /* For mobile phones: */
+        #centered {
+            width: 90%;
+        }
+	    .gameTitle {
+		    font-size: 10px;
 	    }
-	    var newParagraph = document.createElement('p');
-        newParagraph.innerHTML = message;
-        consoleDiv.appendChild(newParagraph);
-        consoleDiv.scrollTop = consoleDiv.scrollHeight;
     }
-    var versionCounter = document.getElementById('versionNo')
-	versionCounter.textContent = "V" + versionNumber
-</script>
+    </style>
+</body>    
 </html>
